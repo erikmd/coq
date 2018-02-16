@@ -637,6 +637,7 @@ let rec constr_of_glob env sigma g = match DAst.get g with
       let sigma,c = constr_of_glob env sigma gc in
       let sigma,cl = List.fold_left_map (constr_of_glob env) sigma gcl in
       sigma,mkApp (c, Array.of_list cl)
+  | Glob_term.GInt i -> sigma, mkInt i
   | _ ->
       raise NotAValidPrimToken
 
@@ -649,6 +650,7 @@ let rec glob_of_constr token_kind ?loc env sigma c = match Constr.kind c with
   | Const (c, _) -> DAst.make ?loc (Glob_term.GRef (ConstRef c, None))
   | Ind (ind, _) -> DAst.make ?loc (Glob_term.GRef (IndRef ind, None))
   | Var id -> DAst.make ?loc (Glob_term.GRef (VarRef id, None))
+  | Int i -> DAst.make ?loc (Glob_term.GInt i)
   | _ -> Loc.raise ?loc (PrimTokenNotationError(token_kind,env,sigma,UnexpectedTerm c))
 
 let no_such_prim_token uninterpreted_token_kind ?loc ty =

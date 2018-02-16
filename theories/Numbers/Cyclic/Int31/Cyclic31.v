@@ -8,6 +8,8 @@
 (*         *     (see LICENSE file for the text of the license)         *)
 (************************************************************************)
 
+(** This library has been deprecated since Coq version 8.10. *)
+
 (** * Int31 numbers defines indeed a cyclic structure : Z/(2^31)Z *)
 
 (**
@@ -288,7 +290,8 @@ Section Basics.
  induction n; simpl; auto; intros.
  case_eq (iszero x); intros; [ | f_equal; auto ].
  rewrite (iszero_eq0 _ H); simpl; auto.
- replace (recrbis_aux n A case0 caserec 0) with case0; auto.
+ unfold On in *.
+ replace (recrbis_aux n A case0 caserec _) with case0; auto.
  clear H IHn; induction n; simpl; congruence.
  Qed.
 
@@ -1274,7 +1277,7 @@ Section Int31_Specs.
  Qed.
 
  Lemma spec_add_carry :
-	 forall x y, [|x+y+1|] = ([|x|] + [|y|] + 1) mod wB.
+         forall x y, [|x+y+1|] = ([|x|] + [|y|] + 1) mod wB.
  Proof.
  unfold add31; intros.
  repeat rewrite phi_phi_inv.
@@ -1776,7 +1779,7 @@ Section Int31_Specs.
  Qed.
 
  Lemma spec_head0  : forall x,  0 < [|x|] ->
-	 wB/ 2 <= 2 ^ ([|head031 x|]) * [|x|] < wB.
+         wB/ 2 <= 2 ^ ([|head031 x|]) * [|x|] < wB.
  Proof.
  intros.
  rewrite head031_equiv.
@@ -2060,7 +2063,8 @@ Section Int31_Specs.
        [|sqrt31 x|] ^ 2 <= [|x|] < ([|sqrt31 x|] + 1) ^ 2.
  Proof.
  intros i; unfold sqrt31.
- rewrite spec_compare. case Z.compare_spec; change [|1|] with 1;
+ rewrite spec_compare. fold In.
+ case Z.compare_spec; change [|1|] with 1;
    intros Hi; auto with zarith.
  repeat rewrite Z.pow_2_r; auto with zarith.
  apply iter31_sqrt_correct; auto with zarith.
@@ -2339,7 +2343,7 @@ Section Int31_Specs.
    case (phi_bounded ih); intros H1 H2.
    generalize Hih; change (2 ^ Z.of_nat size / 4) with 536870912.
    split; auto with zarith. }
- rewrite spec_compare; case Z.compare_spec.
+ rewrite spec_compare; fold In; case Z.compare_spec.
  rewrite Hsih.
  intros H1; split.
  rewrite Z.pow_2_r, <- Hihl1.
