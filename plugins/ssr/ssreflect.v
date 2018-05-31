@@ -451,3 +451,90 @@ Hint View for apply/ iffRLn|2 iffLRn|2 iffRL|2 iffLR|2.
 Lemma abstract_context T (P : T -> Type) x :
   (forall Q, Q = P -> Q x) -> P x.
 Proof. by move=> /(_ P); apply. Qed.
+
+(*****************************************************************************)
+(* Syntax proposal for the under tactic:
+
+under i: eq_bigr by []. (* renaming *)
+
+under i: eq_bigr.
+  by rewrite addnC over.
+(* oneliner version *)
+under i: eq_bigr by rewrite adnnC.
+
+under i: lem => /andP [H1 H2].
+  by rewrite addnC over.
+(* oneliner version *)
+under i: lem by move => /andP [H1 H2]; rewrite addnC.
+
+(* 2-var version *)
+under i j: {2}[in RHS]eq_mx.
+(* ... *)
+
+(* nested version *)
+under i: eq_bigr=> ?; under j: eq_bigl.
+ *)
+
+Module Type UNDER1.
+Parameter Under :
+  forall (I : Type) (i : I)  (R : Type), R -> R -> Prop.
+Parameter Under_from_eq :
+  forall (I : Type) (i : I)  (T : Type) (x y : T),
+  @Under I i  T x y -> x = y.
+Parameter over :
+  forall (I : Type) (i : I)  (T : Type) (x : T),
+  @Under I i T x x <-> True.
+
+Notation "i : I
+−−−−−−−−−−−−−−−−−−−−−−−−−−−−
+x" := (@Under I i _ x _) (at level 100, format
+"i  :  I '//'
+−−−−−−−−−−−−−−−−−−−−−−−−−−−− '//'
+x").
+(* Hint Resolve Under_done. *)
+End UNDER1.
+
+Module Import Under1 : UNDER1.
+Definition Under (I : Type) (_ : I) := @eq.
+Definition Under_done (I : Type) (_ : I) := @refl_equal.
+Lemma Under_from_eq (I : Type) (i : I) (T : Type) (x y : T) :
+  @Under I i T x y -> x = y.
+Proof. easy. Qed.
+Lemma over (I : Type) (i : I) (T : Type) (x : T) :
+  @Under  I i T x x <-> True.
+Proof. easy. Qed.
+End Under1.
+
+Goal True.
+Definition id := (fun T (x : T) => x).
+assert (A : Under nat 0 nat 1 2 /\ id _ (Under nat 0 Prop (1 = 1) (2 = 2))).
+
+
+Module Type UNDER2.
+Parameter Under :
+  forall (I : Type) (i : I) (J : Type) (j : J) (R : Type), R -> R -> Prop.
+Parameter Under_from_eq :
+  forall  (I : Type) (i : I) (J : Type) (j : J) (T : Type) (x y : T),
+  @Under I i J j T x y -> x = y.
+Parameter over :
+  forall (I : Type) (i : I) (J : Type) (j : J) (T : Type) (x : T),
+  @Under I i J j T x x <-> True.
+Notation "i : I, j : J
+−−−−−−−−−−−−−−−−−−−−−−−−−−−−
+x" := (@Under I i J j _ x _) (at level 100, format
+"i  :  I,  j  :  J '//'
+−−−−−−−−−−−−−−−−−−−−−−−−−−−− '//'
+x").
+(* Hint Resolve Under_done. *)
+End UNDER2.
+
+Module Import Under2 : UNDER2.
+Definition Under (I : Type) (_ : I) (J : Type) (j : J) := @eq.
+Definition Under_done (I : Type) (_ : I) (J : Type) (j : J) := @refl_equal.
+Lemma Under_from_eq (I : Type) (i : I) (J : Type) (j : J) (T : Type) (x y : T) :
+  @Under I i J j T x y -> x = y.
+Proof. easy. Qed.
+Lemma over (I : Type) (i : I) (J : Type) (j : J) (T : Type) (x : T) :
+  @Under I i J j T x x <-> True.
+Proof. easy. Qed.
+End Under2.

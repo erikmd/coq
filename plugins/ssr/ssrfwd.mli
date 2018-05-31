@@ -57,3 +57,6 @@ val sufftac :
        (bool * Tacinterp.Value.t option list)) ->
   Tacmach.tactic
 
+val under :
+  Ltac_plugin.Tacinterp.interp_sign ->
+  Names.Id.t list -> Ssrequality.ssrrwarg -> unit Proofview.tactic

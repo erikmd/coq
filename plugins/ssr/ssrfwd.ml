@@ -315,3 +315,44 @@ let sufftac ist ((((clr, pats),binders),simpl), ((_, c), hint)) =
     let _,ty,_,uc = pf_interp_ty ist gl c in let gl = pf_merge_uc uc gl in
     basecuttac "ssr_suff" ty gl in
   Tacticals.tclTHENS ctac [htac; Tacticals.tclTHEN (old_cleartac clr) (introstac (binders@simpl))]
+
+open Proofview.Notations
+
+let is_app_evar sigma t =
+  match EConstr.kind sigma t with
+  | Term.Evar _ -> true
+  | Term.App(t,_) ->
+      begin match EConstr.kind sigma t with
+      | Term.Evar _ -> true
+      | _ -> false end
+  | _ -> false
+
+
+let rec is_forall_eq_t_evar env sigma b t =
+  match EConstr.kind_of_type sigma t with
+  | Term.SortType _ -> false
+  | Term.ProdType (_,_,t) ->  is_forall_eq_t_evar env sigma true t
+  | Term.LetInType (_,_,_,t) -> is_forall_eq_t_evar env sigma b t
+  | Term.CastType (_,t) -> is_forall_eq_t_evar env sigma b t
+  | Term.AtomicType _ ->
+      let t = Reductionops.whd_all env sigma t in
+      match EConstr.kind_of_type sigma t with
+      | Term.AtomicType(hd, args) ->
+          Ssrcommon.is_ind_ref sigma hd (Coqlib.build_coq_eq ()) &&
+          Array.length args = 3 && is_app_evar sigma args.(2)
+      | _ -> is_forall_eq_t_evar env sigma b t
+
+let under ist varnames ((dir,mult),_ as rule) =
+  if mult <> Ssrequality.nomult then
+    Ssrcommon.errorstrm Pp.(str"Multiplicity not supported");
+  Proofview.V82.tactic (Ssrequality.ssrrewritetac ist [rule])
+  <*> Proofview.Goal.enter (fun gl ->
+    let c = Proofview.Goal.concl gl in
+    let sigma = Proofview.Goal.sigma gl in
+    let env = Proofview.Goal.env gl in
+    if is_forall_eq_t_evar env sigma false c then
+      Ssripats.tclIPAT (List.map (fun x -> Ssrast.IPatId x) varnames)
+    else Proofview.tclUNIT ()
+  )
+
+
