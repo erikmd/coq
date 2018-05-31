@@ -476,65 +476,65 @@ under i: eq_bigr=> ?; under j: eq_bigl.
  *)
 
 Module Type UNDER1.
-Parameter Under :
-  forall (I : Type) (i : I)  (R : Type), R -> R -> Prop.
-Parameter Under_from_eq :
-  forall (I : Type) (i : I)  (T : Type) (x y : T),
-  @Under I i  T x y -> x = y.
-Parameter over :
-  forall (I : Type) (i : I)  (T : Type) (x : T),
-  @Under I i T x x <-> True.
-
+Parameter Under1 :
+  forall (I : Type) (i : I) (R : Type), R -> R -> Prop.
+Parameter Under1_from_eq :
+  forall (I : Type) (i : I) (T : Type) (x y : T),
+  @Under1 I i T x y -> x = y.
+Parameter over1 :
+  forall (I : Type) (i : I) (T : Type) (x : T),
+  @Under1 I i T x x <-> True.
 Notation "i : I
 −−−−−−−−−−−−−−−−−−−−−−−−−−−−
-x" := (@Under I i _ x _) (at level 100, format
-"i  :  I '//'
-−−−−−−−−−−−−−−−−−−−−−−−−−−−− '//'
-x").
-(* Hint Resolve Under_done. *)
+x" := (@Under1 I i _ x _) (at level 200, format
+"'[v' i  :  I '/'
+−−−−−−−−−−−−−−−−−−−−−−−−−−−− '/'
+x ']'", x at level 200).
 End UNDER1.
 
-Module Import Under1 : UNDER1.
-Definition Under (I : Type) (_ : I) := @eq.
-Definition Under_done (I : Type) (_ : I) := @refl_equal.
-Lemma Under_from_eq (I : Type) (i : I) (T : Type) (x y : T) :
-  @Under I i T x y -> x = y.
+Module Under1 : UNDER1.
+Definition Under1 (I : Type) (i : I) := @eq.
+Definition Under1_done (I : Type) (i : I) := @refl_equal.
+Lemma Under1_from_eq (I : Type) (i : I) (T : Type) (x y : T) :
+  @Under1 I i T x y -> x = y.
 Proof. easy. Qed.
-Lemma over (I : Type) (i : I) (T : Type) (x : T) :
-  @Under  I i T x x <-> True.
+Lemma over1 (I : Type) (i : I) (T : Type) (x : T) :
+  @Under1 I i T x x <-> True.
 Proof. easy. Qed.
 End Under1.
 
-Goal True.
-Definition id := (fun T (x : T) => x).
-assert (A : Under nat 0 nat 1 2 /\ id _ (Under nat 0 Prop (1 = 1) (2 = 2))).
-
-
 Module Type UNDER2.
-Parameter Under :
+Parameter Under2 :
   forall (I : Type) (i : I) (J : Type) (j : J) (R : Type), R -> R -> Prop.
-Parameter Under_from_eq :
-  forall  (I : Type) (i : I) (J : Type) (j : J) (T : Type) (x y : T),
-  @Under I i J j T x y -> x = y.
-Parameter over :
+Parameter Under2_from_eq :
+  forall (I : Type) (i : I) (J : Type) (j : J) (T : Type) (x y : T),
+  @Under2 I i J j T x y -> x = y.
+Parameter over2 :
   forall (I : Type) (i : I) (J : Type) (j : J) (T : Type) (x : T),
-  @Under I i J j T x x <-> True.
-Notation "i : I, j : J
+  @Under2 I i J j T x x <-> True.
+
+Notation "i : I ,
+j : J
 −−−−−−−−−−−−−−−−−−−−−−−−−−−−
-x" := (@Under I i J j _ x _) (at level 100, format
-"i  :  I,  j  :  J '//'
-−−−−−−−−−−−−−−−−−−−−−−−−−−−− '//'
-x").
-(* Hint Resolve Under_done. *)
+x" := (@Under2 I i J j _ x _) (at level 200, format
+"'[v' i  :  I , '/'
+j  :  J '/'
+−−−−−−−−−−−−−−−−−−−−−−−−−−−− '/'
+x ']'", x at level 200).
 End UNDER2.
 
-Module Import Under2 : UNDER2.
-Definition Under (I : Type) (_ : I) (J : Type) (j : J) := @eq.
-Definition Under_done (I : Type) (_ : I) (J : Type) (j : J) := @refl_equal.
-Lemma Under_from_eq (I : Type) (i : I) (J : Type) (j : J) (T : Type) (x y : T) :
-  @Under I i J j T x y -> x = y.
+Module Under2 : UNDER2.
+Definition Under2 (I : Type) (i : I) (J : Type) (j : J) := @eq.
+Definition Under2_done (I : Type) (i : I) (J : Type) (j : J) := @refl_equal.
+Lemma Under2_from_eq (I : Type) (i : I) (J : Type) (j : J) (T : Type) (x y : T) :
+  @Under2 I i J j T x y -> x = y.
 Proof. easy. Qed.
-Lemma over (I : Type) (i : I) (J : Type) (j : J) (T : Type) (x : T) :
-  @Under I i J j T x x <-> True.
+Lemma over2 (I : Type) (i : I) (J : Type) (j : J) (T : Type) (x : T) :
+  @Under2 I i J j T x x <-> True.
 Proof. easy. Qed.
 End Under2.
+
+Definition over := (Under1.over1, Under2.over2).
+
+Import Under1.
+Import Under2.
