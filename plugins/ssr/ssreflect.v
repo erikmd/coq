@@ -484,12 +484,8 @@ Parameter Under1_from_eq :
 Parameter over1 :
   forall (I : Type) (i : I) (T : Type) (x : T),
   @Under1 I i T x x <-> True.
-Notation "i : I
-−−−−−−−−−−−−−−−−−−−−−−−−−−−−
-x" := (@Under1 I i _ x _) (at level 200, format
-"'[v' i  :  I '/'
-−−−−−−−−−−−−−−−−−−−−−−−−−−−− '/'
-x ']'", x at level 200).
+Notation "i : I −−−−−−−−−−−−−−−−−−−−−−−−−−−− x" := (@Under1 I i _ x _) (at level 200, format
+"'[v' i  :  I '/' −−−−−−−−−−−−−−−−−−−−−−−−−−−− '/' x ']'", x at level 200).
 End UNDER1.
 
 Module Under1 : UNDER1.
@@ -513,14 +509,8 @@ Parameter over2 :
   forall (I : Type) (i : I) (J : Type) (j : J) (T : Type) (x : T),
   @Under2 I i J j T x x <-> True.
 
-Notation "i : I ,
-j : J
-−−−−−−−−−−−−−−−−−−−−−−−−−−−−
-x" := (@Under2 I i J j _ x _) (at level 200, format
-"'[v' i  :  I , '/'
-j  :  J '/'
-−−−−−−−−−−−−−−−−−−−−−−−−−−−− '/'
-x ']'", x at level 200).
+Notation "i : I , j : J −−−−−−−−−−−−−−−−−−−−−−−−−−−− x" := (@Under2 I i J j _ x _) (at level 200, format
+"'[v' i  :  I , '/' j  :  J '/' −−−−−−−−−−−−−−−−−−−−−−−−−−−− '/' x ']'", x at level 200).
 End UNDER2.
 
 Module Under2 : UNDER2.
