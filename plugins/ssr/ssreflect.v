@@ -488,7 +488,7 @@ Notation "''Under[' x ]" := (@Under _ x _)
   (at level 8, format "''Under['  x  ]").
 End UNDER.
 
-Module Import Under : UNDER.
+Module Export Under : UNDER.
 Definition Under := @eq.
 Definition Under_done := @refl_equal.
 Lemma Under_from_eq (T : Type) (x y : T) :
