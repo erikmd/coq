@@ -327,32 +327,54 @@ let is_app_evar sigma t =
       | _ -> false end
   | _ -> false
 
+let tmp = ref 0
 
-let rec is_forall_eq_t_evar env sigma b t =
-  match EConstr.kind_of_type sigma t with
-  | Term.SortType _ -> false
-  | Term.ProdType (_,_,t) ->  is_forall_eq_t_evar env sigma true t
-  | Term.LetInType (_,_,_,t) -> is_forall_eq_t_evar env sigma b t
-  | Term.CastType (_,t) -> is_forall_eq_t_evar env sigma b t
+let rec intro_lock names = Proofview.Goal.enter begin fun gl ->
+ let c = Proofview.Goal.concl gl in
+ let sigma = Proofview.Goal.sigma gl in
+ let env = Proofview.Goal.env gl in
+ let rec aux c =
+  match EConstr.kind_of_type sigma c with
+  | Term.SortType _ -> Proofview.tclUNIT ()
+  | (Term.ProdType (name,_,t) | Term.LetInType (name,_,_,t)) ->
+      begin match names with
+      | n :: names -> Ssripats.tclIPAT [Ssrast.IPatId n] <*> intro_lock names
+      | [] ->
+          (* after quell intro patterns, use IpatTemp *)
+          let id =
+            match name with
+            | Name.Anonymous -> Id.of_string (Printf.sprintf "_under_%d_" !tmp)
+            | Name.Name n -> n in
+          incr tmp;          
+          Ssripats.tclIPAT [
+            Ssrast.IPatId id;
+            Ssrast.IPatTac (intro_lock names);
+            Ssrast.IPatTac (Tactics.revert [id])]
+      end
+  | Term.CastType (t,_) -> aux t
   | Term.AtomicType _ ->
-      let t = Reductionops.whd_all env sigma t in
+      let t = Reductionops.whd_all env sigma c in
       match EConstr.kind_of_type sigma t with
-      | Term.AtomicType(hd, args) ->
+      | Term.AtomicType(hd, args) when
           Ssrcommon.is_ind_ref sigma hd (Coqlib.build_coq_eq ()) &&
-          Array.length args = 3 && is_app_evar sigma args.(2)
-      | _ -> is_forall_eq_t_evar env sigma b t
+          Array.length args = 3 && is_app_evar sigma args.(2) ->
+            Tactics.New.refine ~typecheck:true (fun sigma ->
+              let sigma, under =
+                Ssrcommon.mkSsrConst "Under" env sigma in
+              let sigma, under_from_eq =
+                Ssrcommon.mkSsrConst "Under_from_eq" env sigma in
+              let ty = EConstr.mkApp (under,args) in
+              let sigma, t = Evarutil.new_evar env sigma ty in
+              sigma, EConstr.mkApp(under_from_eq,Array.append args [|t|]))
+      | _ -> Proofview.tclUNIT ()
+  in
+    aux c
+  
+end
 
 let under ist varnames ((dir,mult),_ as rule) =
   if mult <> Ssrequality.nomult then
     Ssrcommon.errorstrm Pp.(str"Multiplicity not supported");
-  Proofview.V82.tactic (Ssrequality.ssrrewritetac ist [rule])
-  <*> Proofview.Goal.enter (fun gl ->
-    let c = Proofview.Goal.concl gl in
-    let sigma = Proofview.Goal.sigma gl in
-    let env = Proofview.Goal.env gl in
-    if is_forall_eq_t_evar env sigma false c then
-      Ssripats.tclIPAT (List.map (fun x -> Ssrast.IPatId x) varnames)
-    else Proofview.tclUNIT ()
-  )
-
+  Proofview.V82.tactic (Ssrequality.ssrrewritetac ist [rule]) <*>
+  intro_lock varnames
 
