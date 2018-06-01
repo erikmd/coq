@@ -498,3 +498,22 @@ Lemma over (T : Type) (x : T) :
   @Under T x x <-> True.
 Proof. easy. Qed.
 End Under.
+
+(* TESTCASE for the 2-var case
+
+Goal forall i j : nat, False.
+intros.
+evar (I : Type); evar (J : Type); evar (R : Type); evar (x2 : I -> J -> R).
+assert (H : i + 2 * j - i = x2 i j).
+  unfold x2 in *; clear x2;
+  unfold R in *; clear R;
+  unfold J in *; clear J;
+  unfold I in *; clear I.
+  Focus 1.
+  apply Under_from_eq.
+  Fail apply over. (* doesn't work, so we have to make a beta-expansion by hand *)
+  rewrite -[i + 2 * j - i]/((fun x y => x + 2 * y - x) i j). (* should be automated *)
+  apply over.
+  done.
+Abort.
+ *)
