@@ -375,6 +375,20 @@ end
 let under ist varnames ((dir,mult),_ as rule) =
   if mult <> Ssrequality.nomult then
     Ssrcommon.errorstrm Pp.(str"Multiplicity not supported");
-  Proofview.V82.tactic (Ssrequality.ssrrewritetac ist [rule]) <*>
+  let map_redex env evar_map ~before:_ ~after:t =
+    (* example for Erik (note: the degenerate let-in I create as an example
+     * has the 'unkeyed' notation attached, this is why you see that in
+     * the goal).
+     *
+     * You should fix this code and use varnames I guess. *)
+    ppdebug(lazy Pp.(str"under: mapping:" ++ pr_econstr_env env evar_map t));
+    
+    let evar_map, ty = Typing.type_of env evar_map t in
+    let new_t =
+      EConstr.mkLetIn (Name.mk_name (Id.of_string "xxx"),t,ty,EConstr.mkRel 1) in
+    ppdebug(lazy Pp.(str"under: to:" ++ pr_econstr_env env evar_map new_t));
+
+    evar_map, new_t in
+  Proofview.V82.tactic (Ssrequality.ssrrewritetac ~map_redex ist [rule]) <*>
   intro_lock varnames
 
