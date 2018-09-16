@@ -22,11 +22,9 @@ Proof.
  Set Debug Ssreflect.
  under i : {1}eq_big.
 
-  { by []. }
-  { move=> Pi. by []. }
+  { by apply over. }
+  { move=> Pi. by apply over. }
  rewrite /=.
 
  case: admit.
 Qed.
-
-
