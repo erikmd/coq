@@ -345,7 +345,7 @@ let rec intro_lock names = Proofview.Goal.enter begin fun gl ->
             match name with
             | Name.Anonymous -> Id.of_string (Printf.sprintf "_under_%d_" !tmp)
             | Name.Name n -> n in
-          incr tmp;          
+          incr tmp;
           Ssripats.tclIPAT [
             Ssrast.IPatId id;
             Ssrast.IPatTac (intro_lock names);
@@ -369,7 +369,7 @@ let rec intro_lock names = Proofview.Goal.enter begin fun gl ->
       | _ -> Proofview.tclUNIT ()
   in
     aux c
-  
+
 end
 
 let rec pretty_rename evar_map term = function
@@ -386,7 +386,9 @@ let rec pretty_rename evar_map term = function
         ppdebug(lazy Pp.(str"under: cannot pretty-rename all bound variables with destLambda"));
         term
 
-let under ist varnames ((dir,mult),_ as rule) =
+let overtac gl = ssr_n_tac "over" ~-1 gl
+
+let under ist varnames ((dir,mult),_ as rule) hint =
   if mult <> Ssrequality.nomult then
     Ssrcommon.errorstrm Pp.(str"Multiplicity not supported");
 
@@ -405,11 +407,22 @@ let under ist varnames ((dir,mult),_ as rule) =
             EConstr.mkApp (f, new_ar)
           end with
       | DestKO ->
-        ppdebug(lazy Pp.(str"under: cannot pretty-rename bound variables with destApp"));
-        t
+         ppdebug(lazy Pp.(str"under: cannot pretty-rename bound variables with destApp"));
+         t
     in
     ppdebug(lazy Pp.(str"under: to:" ++ pr_econstr_env env evar_map new_t));
     evar_map, new_t
   in
-  Proofview.V82.tactic (Ssrequality.ssrrewritetac ~map_redex ist [rule]) <*>
-  intro_lock varnames
+  let undertacs =
+    if hint = nohint then
+      Proofview.tclUNIT ()
+    else
+      Proofview.tclDISPATCH
+        ((List.map (function None -> Proofview.V82.tactic overtac
+                           | Some e -> ssrevaltac ist e <*>
+                                         Proofview.V82.tactic overtac)
+            (if hint = nullhint then [None] else snd hint)) @ [Proofview.tclUNIT ()])
+  in
+  (Proofview.V82.tactic (Ssrequality.ssrrewritetac ~map_redex ist [rule]) <*>
+     intro_lock varnames <*> undertacs)
+
