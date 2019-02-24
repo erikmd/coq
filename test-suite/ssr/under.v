@@ -44,10 +44,9 @@ assert (H : i + 2 * j - i = x2 i j).
   apply Under_from_eq.
   Fail done.
 
-  rewrite over.
-  Fail done. (* Bug: doesn't work so we have to make a beta-expansion by hand *)
+  Fail over. (* Bug: doesn't work so we have to make a beta-expansion by hand *)
   rewrite -[i + 2 * j - i]/((fun x y => x + 2 * y - x) i j). (* todo: automate? *)
-  done.
+  over.
   case: admit.
 Qed.
 
@@ -62,9 +61,10 @@ assert (H : i + 2 * j - i = x2 i j).
   apply Under_from_eq.
   Fail done.
 
-  Fail over. (* Bug: doesn't work so we have to make a beta-expansion by hand *)
+  rewrite over.
+  Fail done. (* Bug: doesn't work so we have to make a beta-expansion by hand *)
   rewrite -[i + 2 * j - i]/((fun x y => x + 2 * y - x) i j). (* todo: automate? *)
-  over.
+  done.
   case: admit.
 Qed.
 

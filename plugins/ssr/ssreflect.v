@@ -492,7 +492,7 @@ Parameter over_done :
 Hint Extern 0 (@Over _ _ _) => solve [ apply over_done ] : core.
 (* => for test_under_eq_big *)
 Hint Resolve over_done : core.
-(* => for test_over_1_2 *)
+(* => for test_over_1_1 *)
 
 (** [under_done]: for Ltac-style over *)
 Parameter under_done :
