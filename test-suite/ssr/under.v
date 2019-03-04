@@ -161,3 +161,19 @@ under x: Lem.
 under x: Lem by [done|rewrite f_eq|done].
 done.
 Qed.
+
+Require Import Setoid.
+
+Lemma iff_ex R (P1 P2 : R -> Prop) :
+  (forall x : R, P1 x <-> P2 x) -> ((exists x, P1 x) <-> (exists x, P2 x)).
+Proof.
+(* by move=> H; split; move=> [x Hx]; exists x; apply H. *)
+by move=> H; setoid_rewrite H.
+Qed.
+
+Arguments iff_ex [R P1] P2 iffP12.
+
+Lemma test (P : nat -> Prop) : (exists x, P x) -> True.
+under i: iff_ex.
+  over.
+Abort.

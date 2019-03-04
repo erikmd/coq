@@ -355,6 +355,18 @@ let rec intro_lock names = Proofview.Goal.enter begin fun gl ->
             Ssripats.IOpEqGen (Tactics.revert [id])]
       end
   | Term.CastType (t,_) -> aux t
+  | Term.AtomicType(hd, args) when
+      Ssrcommon.is_const_ref sigma hd (Coqlib.lib_ref "core.iff.type") &&
+      Array.length args = 2 && is_app_evar sigma args.(1) ->
+        ppdebug(lazy Pp.(str"under: core.iff.type"));
+          Tactics.New.refine ~typecheck:true (fun sigma ->
+            let sigma, under_iff =
+              Ssrcommon.mkSsrConst "Under_iff" env sigma in
+            let sigma, under_from_iff =
+              Ssrcommon.mkSsrConst "Under_from_iff" env sigma in
+            let ty = EConstr.mkApp (under_iff,args) in
+            let sigma, t = Evarutil.new_evar env sigma ty in
+            sigma, EConstr.mkApp(under_from_iff,Array.append args [|t|]))
   | Term.AtomicType _ ->
       let t = Reductionops.whd_all env sigma c in
       match EConstr.kind_of_type sigma t with
